@@ -1,22 +1,37 @@
 {
   "name": "~TODO~",
   "version": "0.0.1",
+  "watch": {
+    "build": {
+      "patterns": [
+        "src",
+        "static",
+        "svelte.config.cjs"
+      ],
+      "extensions": "js,svelte,html,json,cjs"
+    }
+  },
   "scripts": {
     "dev": "svelte-kit dev",
-    "build": "svelte-kit build",
+    "build": "rm -rf ./build && svelte-kit build && node ./bin/rename-start.js",
     "preview": "svelte-kit preview",
     "lint": "prettier --check . && eslint --ignore-path .gitignore .",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "watch": "npm-watch"
   },
   "devDependencies": {
-    "@sveltejs/kit": "next",
+    "@sveltejs/adapter-static": "^1.0.0-next.7",
+    "@sveltejs/kit": "^1.0.0-next.95",
     "eslint": "^7.22.0",
     "eslint-config-prettier": "^8.1.0",
     "eslint-plugin-svelte3": "^3.2.0",
+    "node-sass": "^5.0.0",
+    "npm-watch": "^0.9.0",
     "prettier": "~2.2.1",
     "prettier-plugin-svelte": "^2.2.0",
-    "svelte": "^3.29.0",
-    "vite": "^2.1.0"
+    "svelte": "^3.38.1",
+    "svelte-preprocess": "^4.7.3",
+    "vite": "^2.2.4"
   },
   "type": "module"
 }

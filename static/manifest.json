@@ -1,0 +1,26 @@
+{
+  "manifest_version": 3,
+  "name": "DDBVTT",
+  "version": "0.0.1",
+
+  "content_scripts": [
+    {
+      "matches": ["https://www.dndbeyond.com/campaigns/*"],
+      "js": ["campaign.js"]
+    },
+    {
+      "matches": ["https://www.dndbeyond.com/sources/*"],
+      "js": ["source.js"],
+      "all_frames": true
+    }
+  ],
+
+  "web_accessible_resources": [
+    {
+      "resources": ["vtt.html", "app/*"],
+      "matches": ["https://www.dndbeyond.com/*"]
+    }
+  ],
+
+  "permissions": ["storage"]
+}

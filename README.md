@@ -1,38 +1,48 @@
-# create-svelte
+# A VTT for D&D Beyond
 
-Everything you need to build a Svelte project, powered by [`create-svelte`](https://github.com/sveltejs/kit/tree/master/packages/create-svelte);
+## MVP Features
 
-## Creating a project
+1. Display adventure in panel within campaign page
+  - Save adventure, last viewed location, maybe scroll location?
+2. Create encounter from source
+  - Click Monster
+  - Create encounter via API
+  - Display encounter (collapse source)
+  - On End encounter (return to source)
+3. Display map from source
+  - Show DM map to DM, player map to players
+4. Explored area opacity
+  - DM selects by square
+  - Player views only exposed square
 
-If you're seeing this, you've probably already done this step. Congrats!
+### Stretch Features
+- No-extension mode (off-site view of player map)
+- Movable tokens
+- PC details
+- Player controlled tokens
+- In-page video
 
-```bash
-# create a new project in the current directory
-npm init svelte@next
+## Architecture
 
-# create a new project in my-app
-npm init svelte@next my-app
-```
+### Content Scripts
+- Main `/campaigns/[id]` no frames
+- Adventure frame `/source/[id]/[chapter]`
+- Encounter frame `/encounters/[id]`
 
-> Note: the `@next` is temporary
+### Messaging
 
-## Developing
+frame -> worker -> main
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+### API Calls
 
-```bash
-npm run dev
+- DDB:
+  - Create Encounter
+- GQL:
+  - Campaign
+  - Adventure - Chapter & Scroll
+  - Map & Revealed tiles
+  - *Tokens
+  - *WebRTC
 
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
-
-## Building
-
-Before creating a production version of your app, install an [adapter](https://kit.svelte.dev/docs#adapters) for your target environment. Then:
-
-```bash
-npm run build
-```
-
-> You can preview the built app with `npm run preview`, regardless of whether you installed an adapter. This should _not_ be used to serve your app in production.
+## Development
+`> npm run dev`
