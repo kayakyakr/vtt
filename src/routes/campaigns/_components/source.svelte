@@ -1,23 +1,25 @@
 <script>
+  import { encounter } from "$lib/stores/encounter"
   let sourceUrl
+  let frame
 
   chrome.storage.sync.get(["sourceUrl"], ({ sourceUrl: srcUrl = "/sources" }) => { 
     sourceUrl = srcUrl 
   })
 
   chrome.storage.sync.onChanged.addListener(({ sourceUrl: srcChange }) => {
-    if (srcChange) sourceUrl = srcChange.newValue
+    if (srcChange && frame.contentWindow.location.pathname !== srcChange.newValue) {
+      sourceUrl = srcChange.newValue
+    }
   })
 </script>
 
 {#if sourceUrl }
-  <iframe src="{sourceUrl}" title="Select your source" />
+  <iframe bind:this={frame} src="{sourceUrl}" title="Select your source" class:encounter={$encounter} />
 {/if}
 
-
 <style lang="scss">
-  iframe {
-    height: 100%;
-    width: 100%;
+  .encounter {
+    display: none;
   }
 </style>

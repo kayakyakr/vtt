@@ -3,12 +3,16 @@
 ## MVP Features
 
 1. Display adventure in panel within campaign page
-  - Save adventure, last viewed location, maybe scroll location?
+  - [x] Save adventure 
+  - [x] last viewed location
+  - [] maybe scroll location?
+  - [] return to source selection
 2. Create encounter from source
-  - Click Monster
-  - Create encounter via API
-  - Display encounter (collapse source)
-  - On End encounter (return to source)
+  -[x] Click Monster
+  -[x] Create encounter via API
+  -[x] Display encounter (collapse source)
+  -[x] On End encounter (return to source)
+  -[] Style encounter page to be compact
 3. Display map from source
   - Show DM map to DM, player map to players
 4. Explored area opacity
@@ -16,6 +20,7 @@
   - Player views only exposed square
 
 ### Stretch Features
+- Exit VTT mode
 - No-extension mode (off-site view of player map)
 - Movable tokens
 - PC details

@@ -3,6 +3,10 @@
   "name": "DDBVTT",
   "version": "0.0.1",
 
+  "background": {
+    "service_worker": "service-worker.js"
+  },
+  
   "content_scripts": [
     {
       "matches": ["https://www.dndbeyond.com/campaigns/*"],

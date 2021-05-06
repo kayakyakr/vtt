@@ -19,7 +19,15 @@
     display: flex;
 
     .left-area {
-      flex: 430px;
+      width: 430px;
+      display: flex;
+      flex-direction: column;
+      justify-content: stretch;
+      align-items: stretch;
+
+      & > :global(*) {
+        flex: 1;
+      }
     }
 
     .main-area {

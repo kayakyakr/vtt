@@ -1,4 +1,4 @@
-const adapter = require('@sveltejs/adapter-static');
+const adapterStatic = require('@sveltejs/adapter-static');
 const sveltePreprocess = require("svelte-preprocess")
 
 /** @type {import('@sveltejs/kit').Config} */
@@ -8,7 +8,7 @@ module.exports = {
 		// hydrate the <div id="svelte"> element in src/app.html
 		target: '#svelte',
 		appDir: "app",
-		adapter: adapter({
+		adapter: adapterStatic({
 			fallback: 'vtt.html',
 		}),
 		paths: {
