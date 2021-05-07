@@ -1,7 +1,27 @@
 <script>
+  import { setContext } from "svelte"
+  import { setClient, subscribe, mutation } from "svelte-apollo"
+  import { client } from '$lib/apolloClient';
+  
+  import { CAMPAIGN_SUBSCRIPTION, CREATE_CAMPAIGN } from "$lib/queries"
+  import { readCampaignID } from "$lib/api/campaigns";
+  
   import Source from "./_components/source.svelte"
   import Map from "./_components/map.svelte"
   import Encounter from "./_components/encounter.svelte"
+
+  setClient(client)
+
+  const campaignId = Number(readCampaignID())
+  const campaign = subscribe(CAMPAIGN_SUBSCRIPTION, { variables: { id: campaignId }})
+  setContext("campaign", campaign)
+
+  $: {
+    if (!$campaign.loading && !$campaign.data?.campaign_by_pk) {
+      const createCampaign = mutation(CREATE_CAMPAIGN)
+      createCampaign({ variables: { id: campaignId, name: document.querySelector('.page-title')?.textContent.trim() }})
+    }
+  }
 </script>
 
 <main class="tabletop">

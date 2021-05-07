@@ -4,6 +4,15 @@
     // on mouse enter
     // on mouse leave
 
+    function ancestorContains(node, className) {
+      return node.classList.contains(className)
+        || (!!node.parentElement && ancestorContains(node.parentElement, className))
+    }
+
+    function findFigure(node) {
+      return node.tagName === "FIGURE" ? node : !!node.parentElement && findFigure(node.parentElement)
+    }
+
     document.body.addEventListener('click', (e) => {
       if (e.target.classList.contains("tooltip-hover")) {
         // Block onclick for out-of-source links
@@ -19,10 +28,23 @@
           })
         }
       }
+
+      // Watch for onclick for maps
+      if (ancestorContains(e.target, 'compendium-image')) {
+        e.preventDefault()
+        e.stopPropagation()
+        const figure = findFigure(e.target)
+
+        chrome.runtime.sendMessage({
+          message: "map-selected",
+          url: figure.querySelector('.compendium-image-center').href,
+          playerUrl: figure.querySelector('figcaption a')?.href,
+          name: figure.querySelector('figcaption').textContent.replace("View Player Version", "").trim()
+        })
+      }
     })
 
 
-    // TODO: Watch for onclick for maps
 
     // Watch for source chapter/scroll
     chrome.storage.sync.get(["sourceUrl"], ({ sourceUrl }) => {
