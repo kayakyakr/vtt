@@ -10,6 +10,7 @@ subscription campaign($id: Int!) {
       name
       url
       player_url
+      active
     }
   }
 }
@@ -28,6 +29,9 @@ mutation create_campaign($name: String, $id: Int) {
 
 export const CREATE_MAP = gql`
 mutation create_map ($campaign_id: Int, $name: String, $player_url: String, $url: String) {
+  update_maps( where: { campaign_id: { _eq: $campaign_id } }, _set: { active: false }) {
+    returning { id }
+  }
   insert_maps_one(object: {campaign_id: $campaign_id, name: $name, player_url: $player_url, url: $url}) {
     id
     name
@@ -36,4 +40,23 @@ mutation create_map ($campaign_id: Int, $name: String, $player_url: String, $url
     campaign_id
   }
 }
+`
+
+export const ACTIVATE_MAP = gql`
+  mutation activate_map ($campaign_id: Int!, $id: Int!) {
+    update_maps(where: {campaign_id: {_eq: $campaign_id}}, _set: { active: false }) {
+      returning { id }
+    }
+    update_maps_by_pk(pk_columns: { id: $id }, _set: { active: true }) {
+      id
+    }
+  }
+`
+
+export const DELETE_MAP = gql`
+  mutation delete_map ($id: Int!) {
+    delete_maps_by_pk(id: $id) {
+      id
+    }
+  }
 `

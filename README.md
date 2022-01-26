@@ -14,18 +14,21 @@
   -[x] On End encounter (return to source)
   -[] Style encounter page to be compact
 3. Display map from source
-  - Show DM map to DM, player map to players
+  - [x] Create map subscription
+  - [] Show DM map to DM, player map to players
+  - [] Close map
 4. Explored area opacity
-  - DM selects by square
-  - Player views only exposed square
+  - [] Draw grid
+  - [] Cover unrevealed squares
+  - [] DM reveals squares
 
 ### Stretch Features
 - Exit VTT mode
 - No-extension mode (off-site view of player map)
-- Movable tokens
-- PC details
-- Player controlled tokens
 - In-page video
+- Movable tokens
+- PC quick-view for DM screen
+- Player controlled tokens
 
 ## Architecture
 
@@ -44,8 +47,8 @@ frame -> worker -> main
   - Create Encounter
 - GQL:
   - Campaign
-  - Adventure - Chapter & Scroll
   - Map & Revealed tiles
+  - Adventure - Chapter & Scroll
   - *Tokens
   - *WebRTC
 

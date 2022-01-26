@@ -13,7 +13,7 @@ module.exports = {
 		}),
 		paths: {
 			base: "",
-			assets: "chrome-extension://eajefgiobmbhphbljlglolmjpnhnppco",
+			assets: "chrome-extension://ppihnlailfoogblfgfodjnhebelgaonp",
 		},
 		prerender: {
 			enabled: false,

@@ -8,3 +8,7 @@ export const fetchAll = async ({ campaignId } = {}) => {
   players.forEach(p => p.count = 1)
   return players
 }
+
+export const isPlayer = ({ campaignId }) => {
+  return !document.querySelector(`a[href='/campaigns/${campaignId}/edit']`)
+}
