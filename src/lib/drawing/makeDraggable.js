@@ -1,4 +1,4 @@
-export const makeDraggable = (movable) => {
+export const makeDraggable = (movable, endDrag) => {
   movable.interactive = true
 
   movable.on('mousedown', (e) => {
@@ -14,7 +14,7 @@ export const makeDraggable = (movable) => {
   movable.on('mousemove', (e) => {
     if (movable.dragging) {
       e.stopPropagation()
-      movable.position = e.data.getLocalPosition(movable.parent)
+      movable.position.copyFrom(e.data.getLocalPosition(movable.parent))
     }
   })
 
@@ -22,11 +22,13 @@ export const makeDraggable = (movable) => {
     e.stopPropagation()
     movable.dragging = false
     movable.data = null
+    endDrag()
   })
 
   movable.on('mouseupoutside', (e) => {
     e.stopPropagation()
     movable.dragging = false
     movable.data = null
+    endDrag()
   })
 }

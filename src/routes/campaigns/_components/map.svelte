@@ -7,7 +7,7 @@
   // Apply the patch to PIXI
   install(PIXI);
 
-  import { CREATE_MAP, DELETE_MAP } from "$lib/queries"
+  import { CREATE_MAP, DELETE_MAP, UPDATE_TOKEN } from "$lib/queries"
   import { players } from "$lib/stores/players";
   import { makeDraggable } from "$lib/drawing/makeDraggable";
   import { buildToken } from "$lib/drawing/buildToken"
@@ -17,6 +17,7 @@
   const campaign = getContext('campaign')
   const createMap = mutation(CREATE_MAP)
   const deleteMap = mutation(DELETE_MAP)
+  const updateToken = mutation(UPDATE_TOKEN)
   const isPlayer = getContext('isPlayer')
 
   let visibleMapElement
@@ -26,7 +27,8 @@
   let activeMap
   $: maps = $campaign.data?.campaign_by_pk?.maps ?? []
   $: activeMap = maps.find(m => m.active) ?? maps[0]
-  $: mapUrl = isPlayer && activeMap.player_url || activeMap.url
+  $: tokens = activeMap?.tokens ?? []
+  $: mapUrl = isPlayer && activeMap?.player_url || activeMap?.url
 
   chrome.runtime.onMessage.addListener(({ message, url, playerUrl, name }) => {
     if (message === "map-selected") {
@@ -40,6 +42,7 @@
             url,
             player_url: playerUrl,
             name,
+            tokens: $players.map(player => ({ name: player.name, image_url: player.avatarUrl || DEFAULT_AVATAR, x: 0, y: 0 }))
           }
         })
       }      
@@ -74,7 +77,6 @@
   let y = 0
   let baseScale
   let mapHolder
-  let playerTokens = []
   $: scale = baseScale * zoom
 
   function drawMap() {
@@ -93,35 +95,50 @@
     makeDraggable(mapHolder)
   }
 
+  let boardTokens = {}
   $: {
     if(!mapHolder || isPlayer) break $;
 
-    playerTokens = $players.map((player) => {
-      const token = buildToken({ imageUrl: player.avatarUrl || DEFAULT_AVATAR, name: player.name })
-      makeDraggable(token)
-      mapHolder.addChild(token)
+    tokens.forEach((token) => {
+      let tokenElement = boardTokens[token.id]
+      if (tokenElement) {
+        tokenElement.position.set(token.x, token.y)
+      } else {
+        boardTokens[token.id] = tokenElement = buildToken(token)
+        makeDraggable(tokenElement, () => {
+          updateToken({
+            variables: {
+              id: token.id,
+              x: tokenElement.position.x,
+              y: tokenElement.position.y
+            }
+          })
+        })
+        mapHolder.addChild(tokenElement)
+      }
     })
   }
 
   $: if (pixi) pixi.stage.scale.set(scale)
 </script>
 
-{#if activeMap}
   <div class="mapView">
     <div class="mapControls">
       {#each maps as map}<span class="tab">{map.name}</span>{/each}
-      <button on:click={closeActiveMap}>Close</button>
-      <button on:click={() => zoom += 0.2}>+</button>
-      <button on:click={() => zoom -= 0.1}>-</button>
+      {#if activeMap}
+        <button on:click={closeActiveMap}>Close</button>
+        <button on:click={() => zoom += 0.2}>+</button>
+        <button on:click={() => zoom -= 0.1}>-</button>
+      {/if}
     </div>
     <div class="mapDisplay" bind:this={visibleMapElement}></div>
+    {#if !activeMap}
+      <div>When you launch a map, your players will see it here</div>
+    {/if}
     <div class="mapImageHolder">
       <img crossorigin="anonymous" src="{mapUrl}" alt="Invisible Map" on:load={drawMap} bind:this={invisibleMapElement} />
     </div>
   </div>
-{:else}
-  <div>When you launch a map, your players will see it here</div>
-{/if}
 
 <style>
   .mapImageHolder {

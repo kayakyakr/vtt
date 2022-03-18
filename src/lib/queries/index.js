@@ -14,7 +14,7 @@ subscription campaign($id: Int!) {
       tokens {
         id
         name
-        avatar_url
+        image_url
         x
         y
       }
@@ -35,16 +35,29 @@ mutation create_campaign($name: String, $id: Int) {
 `
 
 export const CREATE_MAP = gql`
-mutation create_map ($campaign_id: Int, $name: String, $player_url: String, $url: String) {
+mutation create_map ($campaign_id: Int, $name: String, $player_url: String, $url: String, $tokens: [tokens_insert_input!]!) {
   update_maps( where: { campaign_id: { _eq: $campaign_id } }, _set: { active: false }) {
     returning { id }
   }
-  insert_maps_one(object: {campaign_id: $campaign_id, name: $name, player_url: $player_url, url: $url}) {
+  insert_maps_one(object: {
+    campaign_id: $campaign_id, 
+    name: $name, 
+    player_url: $player_url, 
+    url: $url,
+    tokens: { data: $tokens }
+  }) {
     id
     name
     player_url
     url
     campaign_id
+    tokens {
+      id
+      name
+      image_url
+      x
+      y
+    }
   }
 }
 `
@@ -64,6 +77,16 @@ export const DELETE_MAP = gql`
   mutation delete_map ($id: Int!) {
     delete_maps_by_pk(id: $id) {
       id
+    }
+  }
+`
+
+export const UPDATE_TOKEN = gql`
+  mutation update_token ($id: Int!, $x: float8, $y: float8) {
+    update_tokens_by_pk(pk_columns: { id: $id }, _set: { x: $x, y: $y }) {
+      id
+      x
+      y
     }
   }
 `

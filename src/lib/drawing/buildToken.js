@@ -1,8 +1,10 @@
 import * as PIXI from "pixi.js"
-export const buildToken = ({ imageUrl, name }) => {
+export const buildToken = ({ image_url, name, id, x, y }) => {
   const token = new PIXI.Container()
+  token.id = id
+  token.position.set(x, y)
 
-  const sprite = new PIXI.Sprite.from(imageUrl)
+  const sprite = new PIXI.Sprite.from(image_url)
   sprite.height = 60
   sprite.width = 60
   sprite.x = 0
