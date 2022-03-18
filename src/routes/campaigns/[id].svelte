@@ -1,11 +1,12 @@
 <script>
-  import { setContext } from "svelte"
+  import { onMount, setContext } from "svelte"
   import { setClient, subscribe, mutation } from "svelte-apollo"
   import { client } from '$lib/apolloClient';
   
   import { CAMPAIGN_SUBSCRIPTION, CREATE_CAMPAIGN } from "$lib/queries"
   import { readCampaignID } from "$lib/api/campaigns";
-  import { isPlayer } from "$lib/api/players";
+  import { isPlayer, fetchAll as fetchPlayers } from "$lib/api/players";
+  import { players } from "$lib/stores/players";
   
   import Source from "./_components/source.svelte"
   import Map from "./_components/map.svelte"
@@ -19,6 +20,8 @@
   setContext("campaign", campaign)
   const iAmPlayer = isPlayer({ campaignId })
   setContext("isPlayer", iAmPlayer)
+
+  onMount(async () => $players = await fetchPlayers())
 
   $: {
     if (!$campaign.loading && !$campaign.data?.campaign_by_pk) {

@@ -8,6 +8,11 @@
   install(PIXI);
 
   import { CREATE_MAP, DELETE_MAP } from "$lib/queries"
+  import { players } from "$lib/stores/players";
+  import { makeDraggable } from "$lib/drawing/makeDraggable";
+  import { buildToken } from "$lib/drawing/buildToken"
+
+  const DEFAULT_AVATAR = "https://www.dndbeyond.com/content/1-0-1860-0/skins/waterdeep/images/characters/default-avatar.png"
 
   const campaign = getContext('campaign')
   const createMap = mutation(CREATE_MAP)
@@ -64,25 +69,50 @@
     initializePixi()
   })
 
+  let zoom = 1
+  let x = 0
+  let y = 0
+  let baseScale
+  let mapHolder
+  let playerTokens = []
+  $: scale = baseScale * zoom
+
   function drawMap() {
     initializePixi()
-    // calculate the scale
-    const baseScale = Math.min(pixi.screen.width / invisibleMapElement.width, pixi.screen.height / invisibleMapElement.height)
-    const zoom = 1
+    baseScale = Math.min(pixi.screen.width / invisibleMapElement.width, pixi.screen.height / invisibleMapElement.height)
 
     // draw map, grid, and tokens
     const texture = PIXI.Texture.from(invisibleMapElement)
     const mapSprite = new PIXI.Sprite(texture)
-    pixi.stage.addChild(mapSprite)
+    mapHolder = new PIXI.Container()
+    mapHolder.addChild(mapSprite)
+
+    pixi.stage.addChild(mapHolder)
     pixi.stage.scale.set(baseScale * zoom)
+
+    makeDraggable(mapHolder)
   }
+
+  $: {
+    if(!mapHolder || isPlayer) break $;
+
+    playerTokens = $players.map((player) => {
+      const token = buildToken({ imageUrl: player.avatarUrl || DEFAULT_AVATAR, name: player.name })
+      makeDraggable(token)
+      mapHolder.addChild(token)
+    })
+  }
+
+  $: if (pixi) pixi.stage.scale.set(scale)
 </script>
 
 {#if activeMap}
   <div class="mapView">
     <div class="mapControls">
-      {#each maps as map}<span>{map.name}</span>{/each}
+      {#each maps as map}<span class="tab">{map.name}</span>{/each}
       <button on:click={closeActiveMap}>Close</button>
+      <button on:click={() => zoom += 0.2}>+</button>
+      <button on:click={() => zoom -= 0.1}>-</button>
     </div>
     <div class="mapDisplay" bind:this={visibleMapElement}></div>
     <div class="mapImageHolder">
@@ -106,5 +136,9 @@
   }
   .mapDisplay {
     flex: 1;
+  }
+
+  .tab {
+    color: white;
   }
 </style>

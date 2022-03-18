@@ -11,6 +11,13 @@ subscription campaign($id: Int!) {
       url
       player_url
       active
+      tokens {
+        id
+        name
+        avatar_url
+        x
+        y
+      }
     }
   }
 }
