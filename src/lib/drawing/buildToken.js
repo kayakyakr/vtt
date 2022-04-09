@@ -1,10 +1,13 @@
 import * as PIXI from "pixi.js"
+
+const DEFAULT_AVATAR = "https://www.dndbeyond.com/content/1-0-1860-0/skins/waterdeep/images/characters/default-avatar.png"
+
 export const buildToken = ({ image_url, name, id, x, y }) => {
   const token = new PIXI.Container()
   token.id = id
   token.position.set(x, y)
 
-  const sprite = new PIXI.Sprite.from(image_url)
+  const sprite = new PIXI.Sprite.from(image_url || DEFAULT_AVATAR)
   sprite.height = 60
   sprite.width = 60
   sprite.x = 0

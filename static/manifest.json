@@ -16,6 +16,12 @@
       "matches": ["https://www.dndbeyond.com/sources/*"],
       "js": ["source.js"],
       "all_frames": true
+    },
+    {
+      "matches": ["https://www.dndbeyond.com/combat-tracker/*"],
+      "js": ["encounter.js"],
+      "css": ["encounter.css"],
+      "all_frames": true
     }
   ],
 

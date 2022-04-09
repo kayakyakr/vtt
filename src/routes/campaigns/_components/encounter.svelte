@@ -3,19 +3,28 @@
   import { create as createEncounter, destroy as destroyEncounter } from "$lib/api/encounters"
   import { fetchOne as fetchCampaign } from "$lib/api/campaigns"
   import { fetchAll as fetchPlayers } from "$lib/api/players"
+  import { getMonsterImages } from "$lib/api/monsters"
   import { encounter } from "$lib/stores/encounter"
+  import { mutation } from "svelte-apollo";
+  import { CREATE_TOKENS, DELETE_MONSTER_TOKENS } from "$lib/queries";
+  import { activeMap } from "$lib/stores/maps";
 
   let monsters = []
   let loadingApi = false
+  
+  const createTokens = mutation(CREATE_TOKENS)
+  const deleteMonsterTokens = mutation(DELETE_MONSTER_TOKENS)
 
-  chrome.runtime.onMessage.addListener(({ message, tooltip, name }) => {
-    if (message === "monster-selected") {
-      monsters = [...monsters, {
-        uuid: v5(location.host, v5.URL),
-        name,
-        id: tooltip.match(/(\d+)-tooltip/)[1],
-        count: 1,
-      }]
+  chrome.runtime.onMessage.addListener(async ({ message, tooltip, name }) => {
+    switch(message) {
+      case "monster-selected":
+        monsters = [...monsters, {
+          uuid: v5(location.host, v5.URL),
+          name,
+          id: tooltip.match(/(\d+)-tooltip/)[1],
+          count: 1,
+        }]
+        break;
     }
   })
 
@@ -27,6 +36,20 @@
 
     const [campaign, players] = await Promise.all([fetchCampaign(), fetchPlayers()])
     $encounter = await createEncounter({ monsters: monsterFiltered, campaign, players })
+    // TODO: track active encounter for restoration
+    const monsterImages = await getMonsterImages(monsterFiltered.map(m => m.id))
+    await createTokens({
+      variables: {
+        tokens: monsterFiltered.flatMap(m => {
+          return Array(m.count).fill({
+            name: m.name,
+            image_url: monsterImages[m.id],
+            tokenType: "monster",
+            map_id: $activeMap.id
+          })
+        })
+      }
+    })
     
     loadingApi = false
     monsters = []
@@ -35,6 +58,7 @@
   async function endEncounter() {
     loadingApi = true
     await destroyEncounter({ encounter: $encounter })
+    await deleteMonsterTokens({ variables: { map_id: $activeMap.id } }) // TODO: delete by encounter_id
 
     loadingApi = false
     $encounter = null
@@ -89,6 +113,7 @@
     display: flex;
     position: relative;
     flex-direction: column;
+    flex: 1;
 
     & > iframe {
       flex: 1;

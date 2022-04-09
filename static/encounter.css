@@ -1,0 +1,41 @@
+.vtt .header-wrapper, 
+.vtt .release-indicator, 
+.vtt .ddb-page-header,
+.vtt .combat-tracker-page__content-section+.combat-tracker-page__content-section,
+.vtt .ddb-footer{
+  display: none;
+}
+
+@media screen and (max-width: 1024px) {
+  .vtt .combat-tracker-page__body {
+    align-items: flex-start;
+    flex-direction: row;
+  }
+
+  .vtt .combat-tracker-page__combat-tracker {
+    width: 50%;
+    position: initial;
+  }
+
+  .vtt .combat-tracker-page__content {
+    margin-top: 0;
+    width: 50%;
+  }
+}
+
+.vtt .combat-tracker-page {
+  margin: 0;
+}
+
+.vtt .combat-tracker-page__body {
+  padding: 4px 0;
+}
+
+.vtt .combat-tracker-page__combat-tracker,
+.vtt .combat-tracker__combatants {
+  max-height: none;
+}
+
+.vtt .combat-tracker-page__content {
+  position: initial;
+}

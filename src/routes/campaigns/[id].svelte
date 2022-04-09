@@ -5,6 +5,7 @@
   
   import { CAMPAIGN_SUBSCRIPTION, CREATE_CAMPAIGN } from "$lib/queries"
   import { readCampaignID } from "$lib/api/campaigns";
+  import { campaign, campaignHolder } from "$lib/stores/campaign"
   import { isPlayer, fetchAll as fetchPlayers } from "$lib/api/players";
   import { players } from "$lib/stores/players";
   
@@ -16,8 +17,7 @@
   setClient(client)
 
   const campaignId = Number(readCampaignID())
-  const campaign = subscribe(CAMPAIGN_SUBSCRIPTION, { variables: { id: campaignId }})
-  setContext("campaign", campaign)
+  campaignHolder.set(subscribe(CAMPAIGN_SUBSCRIPTION, { variables: { id: campaignId }}))
   const iAmPlayer = isPlayer({ campaignId })
   setContext("isPlayer", iAmPlayer)
 
@@ -27,7 +27,7 @@
     if (!$campaign.loading && !$campaign.data?.campaign_by_pk) {
       const createCampaign = mutation(CREATE_CAMPAIGN)
       createCampaign({ variables: { id: campaignId, name: document.querySelector('.page-title')?.textContent.trim() }}).then(
-        () => campaign = subscribe(CAMPAIGN_SUBSCRIPTION, { variables: { id: campaignId }})
+        () => campaignHolder.set(subscribe(CAMPAIGN_SUBSCRIPTION, { variables: { id: campaignId }}))
       )
     }
   }
@@ -39,10 +39,12 @@
       <Character />
     {:else}
       <Source />
-      <Encounter />
     {/if}
   </section>
-  <section class="main-area">{#if !$campaign.loading}<Map />{/if}</section>
+  <section class="main-area">
+    {#if !$campaign.loading}<Map />{/if}
+    <Encounter />
+  </section>
   <section class="right-area"></section>
 </main>
 
@@ -64,6 +66,8 @@
     }
 
     .main-area {
+      display: flex;
+      flex-direction: column;
       background: black;
       flex: 1;
     }

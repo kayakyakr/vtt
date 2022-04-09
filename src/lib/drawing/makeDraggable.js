@@ -6,29 +6,28 @@ export const makeDraggable = (movable, endDrag) => {
     movable.dragging = true
     e.data.getLocalPosition(movable.parent)
 
-    const position = e.data.getLocalPosition(movable)
-    movable.pivot.set(position.x, position.y)
-    movable.position = e.data.getLocalPosition(movable.parent)
+    const position = e.data.getLocalPosition(movable.parent)
+    movable.offsetX = movable.position.x - position.x
+    movable.offsetY = movable.position.y - position.y
+    //movable.position = e.data.getLocalPosition(movable.parent)
   })
 
   movable.on('mousemove', (e) => {
     if (movable.dragging) {
       e.stopPropagation()
-      movable.position.copyFrom(e.data.getLocalPosition(movable.parent))
+      const position = e.data.getLocalPosition(movable.parent)
+      movable.position.x = position.x + movable.offsetX
+      movable.position.y = position.y + movable.offsetY
     }
   })
 
-  movable.on('mouseup', (e) => {
+  const dragEnd = (e) => {
     e.stopPropagation()
     movable.dragging = false
     movable.data = null
     endDrag()
-  })
+  }
+  movable.on('mouseup', dragEnd)
 
-  movable.on('mouseupoutside', (e) => {
-    e.stopPropagation()
-    movable.dragging = false
-    movable.data = null
-    endDrag()
-  })
+  movable.on('mouseupoutside', dragEnd)
 }

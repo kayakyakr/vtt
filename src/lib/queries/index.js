@@ -81,12 +81,34 @@ export const DELETE_MAP = gql`
   }
 `
 
+export const CREATE_TOKENS = gql`
+  mutation create_token ($tokens: [tokens_insert_input!]!) {
+    insert_tokens(objects: $tokens) {
+      returning {
+        id
+        name
+        image_url
+        x
+        y
+      }
+    }
+  }
+`
+
 export const UPDATE_TOKEN = gql`
   mutation update_token ($id: Int!, $x: float8, $y: float8) {
     update_tokens_by_pk(pk_columns: { id: $id }, _set: { x: $x, y: $y }) {
       id
       x
       y
+    }
+  }
+`
+
+export const DELETE_MONSTER_TOKENS = gql`
+  mutation delete_tokens($map_id: Int!) {
+    delete_tokens(where: {map_id: { _eq: $map_id }, tokenType: { _eq: "monster" } }) {
+      affected_rows
     }
   }
 `

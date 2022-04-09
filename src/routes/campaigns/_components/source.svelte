@@ -1,5 +1,4 @@
 <script>
-  import { encounter } from "$lib/stores/encounter"
   let sourceUrl
   let frame
 
@@ -12,14 +11,13 @@
       sourceUrl = srcChange.newValue
     }
   })
+
+  // TODO: Store source in campaign
 </script>
 
 {#if sourceUrl }
-  <iframe bind:this={frame} src="{sourceUrl}" title="Select your source" class:encounter={$encounter} />
+  <iframe bind:this={frame} src="{sourceUrl}" title="Select your source" />
 {/if}
 
 <style lang="scss">
-  .encounter {
-    display: none;
-  }
 </style>
