@@ -21,9 +21,9 @@ export const create = async ({ monsters, campaign, players }) => {
   return data
 }
 
-export const destroy = async ({ encounter }) => {
+export const destroy = async ({ encounterId }) => {
   const { token } = await fetchAuth()
-  await fetch(`https://encounter-service.dndbeyond.com/v1/encounters/${encounter.id}`, {
+  await fetch(`https://encounter-service.dndbeyond.com/v1/encounters/${encounterId}`, {
     method: "DELETE",
     headers: {
       "content-type": "application/json",

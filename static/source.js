@@ -44,13 +44,9 @@
       }
     })
 
-
-
-    // Watch for source chapter/scroll
-    chrome.storage.sync.get(["sourceUrl"], ({ sourceUrl }) => {
-      if (location.pathname !== sourceUrl) {
-        chrome.storage.sync.set({ sourceUrl: location.pathname })
-      }
+    chrome.runtime.sendMessage({
+      message: "sync-source-url",
+      sourceUrl: location.pathname,
     })
 
     document.querySelectorAll(".j-collapsible").forEach((n) => {

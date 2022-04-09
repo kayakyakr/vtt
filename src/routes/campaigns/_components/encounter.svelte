@@ -4,16 +4,18 @@
   import { fetchOne as fetchCampaign } from "$lib/api/campaigns"
   import { fetchAll as fetchPlayers } from "$lib/api/players"
   import { getMonsterImages } from "$lib/api/monsters"
-  import { encounter } from "$lib/stores/encounter"
+  import { encounterId } from "$lib/stores/encounter"
   import { mutation } from "svelte-apollo";
-  import { CREATE_TOKENS, DELETE_MONSTER_TOKENS } from "$lib/queries";
+  import { CREATE_TOKENS, DELETE_MONSTER_TOKENS, UPDATE_ENCOUNTER_ID } from "$lib/queries";
   import { activeMap } from "$lib/stores/maps";
+  import { campaignId } from "$lib/stores/campaign";
 
   let monsters = []
   let loadingApi = false
   
   const createTokens = mutation(CREATE_TOKENS)
   const deleteMonsterTokens = mutation(DELETE_MONSTER_TOKENS)
+  const updateEncounterId = mutation(UPDATE_ENCOUNTER_ID)
 
   chrome.runtime.onMessage.addListener(async ({ message, tooltip, name }) => {
     switch(message) {
@@ -35,8 +37,8 @@
     if (monsterFiltered.length === 0) return monsters = []
 
     const [campaign, players] = await Promise.all([fetchCampaign(), fetchPlayers()])
-    $encounter = await createEncounter({ monsters: monsterFiltered, campaign, players })
-    // TODO: track active encounter for restoration
+    const encounter = await createEncounter({ monsters: monsterFiltered, campaign, players })
+    await updateEncounterId({ variables: { campaignId: campaign.id, encounterId: encounter.id } })
     const monsterImages = await getMonsterImages(monsterFiltered.map(m => m.id))
     await createTokens({
       variables: {
@@ -57,17 +59,17 @@
 
   async function endEncounter() {
     loadingApi = true
-    await destroyEncounter({ encounter: $encounter })
+    await destroyEncounter({ encounterId: $encounterId })
+    await updateEncounterId({ variables: { campaignId: $campaignId, encounterId: null } })
     await deleteMonsterTokens({ variables: { map_id: $activeMap.id } }) // TODO: delete by encounter_id
 
     loadingApi = false
-    $encounter = null
   }
 </script>
 
-{#if $encounter }
+{#if $encounterId }
   <div class="run-encounter" class:loadingApi>
-    <iframe src="/combat-tracker/{$encounter.id}" title="encounter"/>
+    <iframe src="/combat-tracker/{$encounterId}" title="encounter"/>
     <button on:click={endEncounter}>End Encounter</button>
   </div>
 {/if}

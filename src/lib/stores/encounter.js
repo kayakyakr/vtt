@@ -1,3 +1,4 @@
-import { writable } from "svelte/store"
+import { derived } from "svelte/store"
+import { campaign } from "$lib/stores/campaign"
 
-export const encounter = writable(null)
+export const encounterId = derived(campaign, $campaign => $campaign.data?.campaign_by_pk?.encounterId)

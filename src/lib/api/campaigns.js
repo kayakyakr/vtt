@@ -9,7 +9,7 @@ export const fetchOne = async ({ campaignId } = {}) => {
   // (and filter to current campaign)
   if (!campaignId) campaignId = readCampaignID()
   const campaigns = await fetchAll()
-  return campaigns.find(c => c.id === campaignId)
+  return campaigns.find(c => c.id === Number(campaignId))
 }
 
 export const readCampaignID = () => {

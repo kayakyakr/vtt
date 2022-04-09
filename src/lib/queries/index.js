@@ -5,6 +5,8 @@ subscription campaign($id: Int!) {
   campaign_by_pk(id: $id) {
     id
     name
+    sourceUrl
+    encounterId
     maps {
       id
       name
@@ -30,6 +32,22 @@ mutation create_campaign($name: String, $id: Int) {
       id
       name
     }
+  }
+}
+`
+
+export const UPDATE_SOURCE_URL = gql`
+mutation update_sourceUrl ($campaignId: Int!, $sourceUrl: String) {
+  update_campaign_by_pk(pk_columns: { id: $campaignId } _set: { sourceUrl: $sourceUrl }) {
+    id
+  }
+}
+`
+
+export const UPDATE_ENCOUNTER_ID = gql`
+mutation update_sourceUrl ($campaignId: Int!, $encounterId: String) {
+  update_campaign_by_pk(pk_columns: { id: $campaignId } _set: { encounterId: $encounterId }) {
+    id
   }
 }
 `
