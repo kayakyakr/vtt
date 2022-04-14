@@ -7,7 +7,7 @@
   // Apply the patch to PIXI
   install(PIXI);
 
-  import { CREATE_MAP, DELETE_MAP, UPDATE_TOKEN } from "$lib/queries"
+  import { ACTIVATE_MAP, CREATE_MAP, DELETE_MAP, UPDATE_TOKEN } from "$lib/queries"
   import { players } from "$lib/stores/players";
   import { campaign } from "$lib/stores/campaign";
   import { tokens } from "$lib/stores/tokens";
@@ -19,18 +19,19 @@
 
   const createMap = mutation(CREATE_MAP)
   const deleteMap = mutation(DELETE_MAP)
+  const activateMap = mutation(ACTIVATE_MAP)
   const updateToken = mutation(UPDATE_TOKEN)
   const isPlayer = getContext('isPlayer')
 
   let visibleMapElement
-  let invisibleMapElement
 
   $: mapUrl = isPlayer && $activeMap?.player_url || $activeMap?.url
 
+  // TODO: clean up and style the map tabs
   chrome.runtime.onMessage.addListener(({ message, url, playerUrl, name }) => {
     if (message === "map-selected") {
       // determine if map is already open
-      const map = $campaign.data.campaign_by_pk?.maps?.find(m => m.url === url)
+      const map = $maps?.find(m => m.url === url)
       if (!map) {
         // add map to campaign
         createMap({
@@ -54,9 +55,19 @@
     })
   }
 
+  function setActiveMap(id) {
+    activateMap({
+      variables: {
+        campaign_id: $campaign.data.campaign_by_pk.id,
+        id
+      }
+    })
+  }
+
   let pixi
   function initializePixi() {
     if (pixi) return
+    if (!visibleMapElement) return
     pixi = new PIXI.Application({
       width: visibleMapElement.width,
       height: visibleMapElement.height,
@@ -72,14 +83,15 @@
   let zoom = 1
   let baseScale
   let mapHolder
+  let lastMap
   $: scale = baseScale * zoom
 
-  function drawMap() {
+  async function drawMap() {
     initializePixi()
-    baseScale = Math.min(pixi.screen.width / invisibleMapElement.width, pixi.screen.height / invisibleMapElement.height)
 
     // draw map, grid, and tokens
-    const texture = PIXI.Texture.from(invisibleMapElement)
+    const texture = await PIXI.Texture.fromURL(mapUrl)
+    baseScale = Math.min(pixi.screen.width / texture.width, pixi.screen.height / texture.height)
     const mapSprite = new PIXI.Sprite(texture)
     mapHolder = new PIXI.Container()
     mapHolder.addChild(mapSprite)
@@ -90,16 +102,33 @@
     makeDraggable(mapHolder, () => {})
   }
 
-  let boardTokens = {}
   $: {
-    if(!mapHolder || isPlayer) break $;
+    if (!visibleMapElement) break $
+
+    if(!mapUrl && mapHolder) {
+      mapHolder.destroy()
+      mapHolder = null
+    } else if (mapUrl && mapUrl !== lastMap) {
+      if(mapHolder) {
+        mapHolder.destroy()
+        mapHolder = null
+      }
+      drawMap()
+    }
+
+    lastMap = mapUrl
+  }
+
+  const boardTokens = {}
+  $: {
+    if(!mapHolder) break $;
 
     const tokenIds = []
     $tokens.forEach((token) => {
       let tokenElement = boardTokens[token.id]
       tokenIds.push(token.id)
       if (tokenElement) {
-        tokenElement.position.set(token.x, token.y)
+        tokenElement.position?.set(token.x, token.y)
       } else {
         boardTokens[token.id] = tokenElement = buildToken(token)
         makeDraggable(tokenElement, () => {
@@ -119,6 +148,7 @@
     const missingTokenIds = Object.keys(boardTokens).filter(bt => !tokenIds.includes(Number(bt)))
     missingTokenIds.forEach(token => {
       boardTokens[token].destroy()
+      delete boardTokens[token]
     })
   }
 
@@ -127,27 +157,28 @@
 
   <div class="mapView">
     <div class="mapControls">
-      {#each maps as map}<span class="tab">{map.name}</span>{/each}
+      <div class="mapTabs">
+        {#each $maps as map}
+          <div class="tab" class:active={map.active} on:click={setActiveMap(map.id)}>
+            {map.name}
+          </div>
+        {/each}
+      </div>
       {#if $activeMap}
-        <button on:click={closeActiveMap}>Close</button>
-        <button on:click={() => zoom *= 1.1}>+</button>
-        <button on:click={() => zoom *= 0.9}>-</button>
+        <div class="globalControls">
+          <button on:click={closeActiveMap}>Close</button>
+          <button on:click={() => zoom *= 1.1}>+</button>
+          <button on:click={() => zoom *= 0.9}>-</button>
+        </div>
       {/if}
     </div>
     <div class="mapDisplay" bind:this={visibleMapElement}></div>
     {#if !$activeMap}
       <div>When you launch a map, your players will see it here</div>
     {/if}
-    <div class="mapImageHolder">
-      <img crossorigin="anonymous" src="{mapUrl}" alt="Invisible Map" on:load={drawMap} bind:this={invisibleMapElement} />
-    </div>
   </div>
 
 <style lang="scss">
-  .mapImageHolder {
-    display: none;
-  }
-
   .mapView {
     display: flex;
     flex-direction: column;
@@ -164,7 +195,33 @@
     }
   }
 
-  .tab {
-    color: white;
+  .mapControls {
+    display: flex;
+    border-bottom: 1px solid rgb(105, 102, 102);
+
+    .mapTabs {
+      display: flex;
+      flex: 1;
+      padding-top: 2px;
+      margin-left: 2px;
+
+      .tab {
+        color: white;
+        padding: 2px 8px;
+        border: 1px solid rgb(105, 102, 102);
+        border-bottom: 0px;
+        border-radius: 3px 3px 0 0;
+        cursor: pointer;
+
+        &.active {
+          background: #646469;
+        }
+      }
+    }
+
+    .globalControls {
+      display: flex;
+      margin-right: 25px;
+    }
   }
 </style>

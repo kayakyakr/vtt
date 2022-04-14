@@ -7,7 +7,9 @@ subscription campaign($id: Int!) {
     name
     sourceUrl
     encounterId
-    maps {
+    maps (
+      order_by: { id: asc }
+    ) {
       id
       name
       url
