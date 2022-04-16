@@ -1,9 +1,9 @@
 <script>
   import { v5 } from "uuid"
-  import { create as createEncounter, destroy as destroyEncounter } from "$lib/api/encounters"
+  import { create as createEncounter, destroy as destroyEncounter, update as updateEncounter, fetchOne as getEncounterDetails } from "$lib/api/encounters"
   import { fetchOne as fetchCampaign } from "$lib/api/campaigns"
   import { fetchAll as fetchPlayers } from "$lib/api/players"
-  import { getMonsterImages } from "$lib/api/monsters"
+  import { getMonsterDetails } from "$lib/api/monsters"
   import { encounterId } from "$lib/stores/encounter"
   import { mutation } from "svelte-apollo";
   import { CREATE_TOKENS, DELETE_MONSTER_TOKENS, UPDATE_ENCOUNTER_ID } from "$lib/queries";
@@ -12,6 +12,7 @@
 
   let monsters = []
   let loadingApi = false
+  let encounterFrame
   
   const createTokens = mutation(CREATE_TOKENS)
   const deleteMonsterTokens = mutation(DELETE_MONSTER_TOKENS)
@@ -30,22 +31,39 @@
     }
   })
 
+  // TODO: if encounter is already running, add to running encounter
   async function startEncounter() {
     loadingApi = true
     const monsterFiltered = monsters.filter((m) => m.count > 0)
     
     if (monsterFiltered.length === 0) return monsters = []
+    
+    const monsterDetails = await getMonsterDetails(monsterFiltered.map(m => m.id))
 
-    const [campaign, players] = await Promise.all([fetchCampaign(), fetchPlayers()])
-    const encounter = await createEncounter({ monsters: monsterFiltered, campaign, players })
-    await updateEncounterId({ variables: { campaignId: campaign.id, encounterId: encounter.id } })
-    const monsterImages = await getMonsterImages(monsterFiltered.map(m => m.id))
+    if ($encounterId) {
+      // add to encounter
+      const encounter = await getEncounterDetails({ id: $encounterId })
+      await updateEncounter({ 
+        id: $encounterId, 
+        monsters: [...encounter.monsters, ...monsterFiltered], 
+        inProgress: encounter.inProgress,
+        roundNum: encounter.roundNum,
+        turnNum: encounter.turnNum
+      })
+      encounterFrame.contentWindow.location.reload()
+    } else {
+      // start encounter
+      const [campaign, players] = await Promise.all([fetchCampaign(), fetchPlayers()])
+      const encounter = await createEncounter({ monsters: monsterFiltered, campaign, players })
+      await updateEncounterId({ variables: { campaignId: campaign.id, encounterId: encounter.id } })
+    }
+
     await createTokens({
       variables: {
         tokens: monsterFiltered.flatMap(m => {
           return Array(m.count).fill({
             name: m.name,
-            image_url: monsterImages[m.id],
+            image_url: monsterDetails[m.id].avatarUrl,
             tokenType: "monster",
             map_id: $activeMap.id
           })
@@ -69,7 +87,7 @@
 
 {#if $encounterId }
   <div class="run-encounter" class:loadingApi>
-    <iframe src="/combat-tracker/{$encounterId}" title="encounter"/>
+    <iframe src="/combat-tracker/{$encounterId}" title="encounter" bind:this={encounterFrame}/>
     <button on:click={endEncounter}>End Encounter</button>
   </div>
 {/if}
@@ -87,7 +105,7 @@
       </tr>
     {/each}
     <tr class="encounter-actions">
-      <td colspan="2"><button class="run" on:click={startEncounter}>Run Encounter</button></td>
+      <td colspan="2"><button class="run" on:click={startEncounter}>{$encounterId ? "Add To" : "Run"} Encounter</button></td>
       <td><button class="cancel" on:click={() => monsters = []}>Cancel</button></td>
     </tr>
   </table>

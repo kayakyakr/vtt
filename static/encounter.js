@@ -2,5 +2,7 @@
 
 // TODO: Detect Current Turn
 (function() {
-  document.querySelector("body").classList.add("vtt")
+  if (window.self !== window.top) {
+    document.querySelector("body").classList.add("vtt")
+  }
 })()
